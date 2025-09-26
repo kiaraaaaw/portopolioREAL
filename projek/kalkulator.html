@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Tema Warna</title>
+    <style>
+        :root {
+            --warna-utama: #ff8fab;
+            --warna-sekunder: #fb6f92;
+            --warna-latar: #fff0f3;
+            --warna-teks: #333333;
+            --warna-teks-terang: #ffffff;
+            --warna-tombol: #f8f9fa;
+            --warna-tombol-hover: #e9ecef;
+            --bayangan: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--warna-latar), #ffeef2);
+            padding: 20px;
+        }
+
+        .kalkulator {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px var(--bayangan);
+            width: 100%;
+            max-width: 360px;
+            overflow: hidden;
+        }
+
+        .layar {
+            background: linear-gradient(to right, var(--warna-utama), var(--warna-sekunder));
+            color: var(--warna-teks-terang);
+            padding: 30px 20px;
+            text-align: right;
+            font-size: 2.5rem;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .operasi {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            min-height: 25px;
+            margin-bottom: 10px;
+        }
+
+        .hasil {
+            font-weight: 600;
+        }
+
+        .tombol-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background-color: #ddd;
+        }
+
+        .tombol {
+            border: none;
+            background-color: var(--warna-tombol);
+            padding: 20px 10px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .tombol:hover {
+            background-color: var(--warna-tombol-hover);
+        }
+
+        .tombol:active {
+            transform: scale(0.95);
+        }
+
+        .tombol.operator {
+            background-color: var(--warna-utama);
+            color: var(--warna-teks-terang);
+        }
+
+        .tombol.operator:hover {
+            background-color: var(--warna-sekunder);
+        }
+
+        .tombol.sama-dengan {
+            background-color: var(--warna-sekunder);
+            color: var(--warna-teks-terang);
+            grid-column: span 2;
+        }
+
+        .tombol.sama-dengan:hover {
+            background-color: #e85d84;
+        }
+
+        .tombol.nol {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 400px) {
+            .kalkulator {
+                max-width: 100%;
+            }
+            
+            .tombol {
+                padding: 18px 5px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="kalkulator">
+        <div class="layar">
+            <div class="operasi" id="operasi"></div>
+            <div class="hasil" id="hasil">0</div>
+        </div>
+        <div class="tombol-container">
+            <button class="tombol clear" data-action="clear">C</button>
+            <button class="tombol operator" data-action="backspace">⌫</button>
+            <button class="tombol operator" data-action="persen">%</button>
+            <button class="tombol operator" data-action="bagi">÷</button>
+            
+            <button class="tombol angka" data-number="7">7</button>
+            <button class="tombol angka" data-number="8">8</button>
+            <button class="tombol angka" data-number="9">9</button>
+            <button class="tombol operator" data-action="kali">×</button>
+            
+            <button class="tombol angka" data-number="4">4</button>
+            <button class="tombol angka" data-number="5">5</button>
+            <button class="tombol angka" data-number="6">6</button>
+            <button class="tombol operator" data-action="kurang">−</button>
+            
+            <button class="tombol angka" data-number="1">1</button>
+            <button class="tombol angka" data-number="2">2</button>
+            <button class="tombol angka" data-number="3">3</button>
+            <button class="tombol operator" data-action="tambah">+</button>
+            
+            <button class="tombol angka nol" data-number="0">0</button>
+            <button class="tombol" data-action="koma">.</button>
+            <button class="tombol operator sama-dengan" data-action="hitung">=</button>
+        </div>
+    </div>
+
+    <script>
+        class Kalkulator {
+            constructor() {
+                this.hasil = document.getElementById('hasil');
+                this.operasi = document.getElementById('operasi');
+                this.resetKalkulator();
+                this.setupEventListeners();
+            }
+
+            resetKalkulator() {
+                this.nilaiSaatIni = '0';
+                this.nilaiSebelumnya = '';
+                this.operator = null;
+                this.menungguOperandKedua = false;
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                this.hasil.textContent = this.nilaiSaatIni;
+                this.operasi.textContent = this.nilaiSebelumnya + (this.operator ? ` ${this.operator} ` : '');
+            }
+
+            tambahDigit(digit) {
+                if (this.menungguOperandKedua) {
+                    this.nilaiSaatIni = digit;
+                    this.menungguOperandKedua = false;
+                } else {
+                    this.nilaiSaatIni = this.nilaiSaatIni === '0' ? digit : this.nilaiSaatIni + digit;
+                }
+                this.updateDisplay();
+            }
+
+            tambahKoma() {
+                if (this.menungguOperandKedua) {
+                    this.nilaiSaatIni = '0.';
+                    this.menungguOperandKedua = false;
+                    return;
+                }
+                
+                if (!this.nilaiSaatIni.includes('.')) {
+                    this.nilaiSaatIni += '.';
+                }
+                this.updateDisplay();
+            }
+
+            pilihOperator(operatorBaru) {
+                const nilaiInput = parseFloat(this.nilaiSaatIni);
+                
+                if (this.nilaiSebelumnya && this.operator && !this.menungguOperandKedua) {
+                    this.hitung();
+                }
+                
+                this.operator = operatorBaru;
+                this.nilaiSebelumnya = this.nilaiSaatIni;
+                this.menungguOperandKedua = true;
+                this.updateDisplay();
+            }
+
+            hitung() {
+                const nilaiSebelum = parseFloat(this.nilaiSebelumnya);
+                const nilaiSekarang = parseFloat(this.nilaiSaatIni);
+                
+                if (isNaN(nilaiSebelum) || isNaN(nilaiSekarang)) return;
+                
+                let hasilHitung;
+                
+                switch (this.operator) {
+                    case '+':
+                        hasilHitung = nilaiSebelum + nilaiSekarang;
+                        break;
+                    case '−':
+                        hasilHitung = nilaiSebelum - nilaiSekarang;
+                        break;
+                    case '×':
+                        hasilHitung = nilaiSebelum * nilaiSekarang;
+                        break;
+                    case '÷':
+                        if (nilaiSekarang === 0) {
+                            alert('Tidak bisa membagi dengan nol!');
+                            return;
+                        }
+                        hasilHitung = nilaiSebelum / nilaiSekarang;
+                        break;
+                    default:
+                        return;
+                }
+                
+                this.nilaiSaatIni = String(hasilHitung);
+                this.operator = null;
+                this.nilaiSebelumnya = '';
+                this.menungguOperandKedua = true;
+                this.updateDisplay();
+            }
+
+            persen() {
+                const nilai = parseFloat(this.nilaiSaatIni);
+                this.nilaiSaatIni = String(nilai / 100);
+                this.updateDisplay();
+            }
+
+            hapusSatuDigit() {
+                if (this.nilaiSaatIni.length > 1) {
+                    this.nilaiSaatIni = this.nilaiSaatIni.slice(0, -1);
+                } else {
+                    this.nilaiSaatIni = '0';
+                }
+                this.updateDisplay();
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.tombol.angka').forEach(tombol => {
+                    tombol.addEventListener('click', () => {
+                        this.tambahDigit(tombol.getAttribute('data-number'));
+                    });
+                });
+
+                document.querySelectorAll('.tombol.operator').forEach(tombol => {
+                    const action = tombol.getAttribute('data-action');
+                    
+                    if (action !== 'backspace' && action !== 'persen') {
+                        tombol.addEventListener('click', () => {
+                            if (action === 'tambah') this.pilihOperator('+');
+                            if (action === 'kurang') this.pilihOperator('−');
+                            if (action === 'kali') this.pilihOperator('×');
+                            if (action === 'bagi') this.pilihOperator('÷');
+                            if (action === 'hitung') this.hitung();
+                        });
+                    }
+                });
+
+                document.querySelector('.tombol[data-action="koma"]').addEventListener('click', () => {
+                    this.tambahKoma();
+                });
+
+                document.querySelector('.tombol[data-action="persen"]').addEventListener('click', () => {
+                    this.persen();
+                });
+
+                document.querySelector('.tombol[data-action="backspace"]').addEventListener('click', () => {
+                    this.hapusSatuDigit();
+                });
+
+                document.querySelector('.tombol[data-action="clear"]').addEventListener('click', () => {
+                    this.resetKalkulator();
+                });
+
+                // Keyboard support
+                document.addEventListener('keydown', (event) => {
+                    if (event.key >= '0' && event.key <= '9') {
+                        this.tambahDigit(event.key);
+                    } else if (event.key === '.') {
+                        this.tambahKoma();
+                    } else if (event.key === '+' || event.key === '-' || event.key === '*' || event.key === '/') {
+                        let operator;
+                        if (event.key === '+') operator = '+';
+                        if (event.key === '-') operator = '−';
+                        if (event.key === '*') operator = '×';
+                        if (event.key === '/') operator = '÷';
+                        this.pilihOperator(operator);
+                    } else if (event.key === 'Enter' || event.key === '=') {
+                        this.hitung();
+                    } else if (event.key === 'Escape' || event.key === 'Delete') {
+                        this.resetKalkulator();
+                    } else if (event.key === 'Backspace') {
+                        this.hapusSatuDigit();
+                    } else if (event.key === '%') {
+                        this.persen();
+                    }
+                });
+            }
+        }
+
+        // Inisialisasi kalkulator saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            new Kalkulator();
+        });
+    </script>
+</body>
+</html>
