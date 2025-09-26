@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jam Digital Tema Warna</title>
+    <style>
+        :root {
+            --warna-utama: #ff8fab;
+            --warna-sekunder: #fb6f92;
+            --warna-latar: #fff0f3;
+            --warna-teks: #333333;
+            --warna-teks-terang: #ffffff;
+            --bayangan: rgba(0, 0, 0, 0.1);
+            --bayangan-teks: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--warna-latar), #ffeef2);
+            padding: 20px;
+        }
+
+        .jam-container {
+            text-align: center;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px var(--bayangan);
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .judul {
+            color: var(--warna-sekunder);
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .jam {
+            font-size: 4.5rem;
+            font-weight: 700;
+            color: var(--warna-utama);
+            text-shadow: 2px 2px 4px var(--bayangan-teks);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .tanggal {
+            font-size: 1.5rem;
+            color: var(--warna-sekunder);
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .detail-waktu {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .kotak-info {
+            background: linear-gradient(to bottom right, var(--warna-utama), var(--warna-sekunder));
+            color: var(--warna-teks-terang);
+            padding: 15px;
+            border-radius: 12px;
+            width: 100px;
+            box-shadow: 0 4px 8px var(--bayangan);
+        }
+
+        .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .nilai {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        /* Animasi untuk detik yang berkedip */
+        .titik-detik {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        /* Responsif untuk perangkat kecil */
+        @media (max-width: 600px) {
+            .jam {
+                font-size: 3.5rem;
+            }
+            
+            .detail-waktu {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+            
+            .kotak-info {
+                width: 80%;
+                max-width: 200px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .jam {
+                font-size: 2.8rem;
+            }
+            
+            .tanggal {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="jam-container">
+        <h1 class="judul">Jam Digital</h1>
+        <div class="jam" id="jam">00:00:00</div>
+        <div class="tanggal" id="tanggal">Hari, 1 Januari 2023</div>
+        
+        <div class="detail-waktu">
+            <div class="kotak-info">
+                <div class="label">Zona Waktu</div>
+                <div class="nilai" id="zona-waktu">WIB</div>
+            </div>
+            <div class="kotak-info">
+                <div class="label">Hari ke</div>
+                <div class="nilai" id="hari-dalam-tahun">1</div>
+            </div>
+            <div class="kotak-info">
+                <div class="label">Minggu ke</div>
+                <div class="nilai" id="minggu-dalam-tahun">1</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class JamDigital {
+            constructor() {
+                this.jamElement = document.getElementById('jam');
+                this.tanggalElement = document.getElementById('tanggal');
+                this.zonaWaktuElement = document.getElementById('zona-waktu');
+                this.hariDalamTahunElement = document.getElementById('hari-dalam-tahun');
+                this.mingguDalamTahunElement = document.getElementById('minggu-dalam-tahun');
+                
+                this.namaHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                this.namaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                                 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                
+                this.perbaruiJam();
+                setInterval(() => this.perbaruiJam(), 1000);
+            }
+
+            formatDuaDigit(angka) {
+                return angka < 10 ? '0' + angka : angka;
+            }
+
+            dapatkanZonaWaktu() {
+                const offset = new Date().getTimezoneOffset();
+                const absOffset = Math.abs(offset);
+                const hours = Math.floor(absOffset / 60);
+                const minutes = absOffset % 60;
+                const sign = offset <= 0 ? '+' : '-';
+                
+                return `UTC${sign}${this.formatDuaDigit(hours)}:${this.formatDuaDigit(minutes)}`;
+            }
+
+            dapatkanHariDalamTahun() {
+                const sekarang = new Date();
+                const awalTahun = new Date(sekarang.getFullYear(), 0, 0);
+                const diff = sekarang - awalTahun;
+                const satuHari = 1000 * 60 * 60 * 24;
+                return Math.floor(diff / satuHari);
+            }
+
+            dapatkanMingguDalamTahun() {
+                const sekarang = new Date();
+                const awalTahun = new Date(sekarang.getFullYear(), 0, 1);
+                const hariPertamaMinggu = 1; // 0 untuk Minggu, 1 untuk Senin
+                
+                // Atur ke hari pertama tahun ini
+                const hariPertama = new Date(awalTahun);
+                
+                // Cari hari pertama minggu yang sesuai
+                while (hariPertama.getDay() !== hariPertamaMinggu) {
+                    hariPertama.setDate(hariPertama.getDate() + 1);
+                }
+                
+                // Jika tanggal sekarang sebelum hari pertama minggu, maka minggu 1
+                if (sekarang < hariPertama) {
+                    return 1;
+                }
+                
+                // Hitung minggu ke berapa
+                const diffWaktu = sekarang - hariPertama;
+                const diffHari = Math.floor(diffWaktu / (1000 * 60 * 60 * 24));
+                return Math.floor(diffHari / 7) + 1;
+            }
+
+            perbaruiJam() {
+                const sekarang = new Date();
+                
+                // Format jam dengan titik berkedip untuk detik
+                const jam = this.formatDuaDigit(sekarang.getHours());
+                const menit = this.formatDuaDigit(sekarang.getMinutes());
+                const detik = this.formatDuaDigit(sekarang.getSeconds());
+                
+                this.jamElement.innerHTML = `${jam}<span class="titik-detik">:</span>${menit}<span class="titik-detik">:</span>${detik}`;
+                
+                // Format tanggal
+                const hari = this.namaHari[sekarang.getDay()];
+                const tanggal = sekarang.getDate();
+                const bulan = this.namaBulan[sekarang.getMonth()];
+                const tahun = sekarang.getFullYear();
+                
+                this.tanggalElement.textContent = `${hari}, ${tanggal} ${bulan} ${tahun}`;
+                
+                // Perbarui informasi tambahan
+                this.zonaWaktuElement.textContent = this.dapatkanZonaWaktu();
+                this.hariDalamTahunElement.textContent = this.dapatkanHariDalamTahun();
+                this.mingguDalamTahunElement.textContent = this.dapatkanMingguDalamTahun();
+            }
+        }
+
+        // Inisialisasi jam saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            new JamDigital();
+        });
+    </script>
+</body>
+</html>
