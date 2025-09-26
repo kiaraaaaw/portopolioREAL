@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List Premium</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --warna-utama: #ff8fab;
+            --warna-sekunder: #fb6f92;
+            --warna-latar: #fff0f3;
+            --warna-teks: #333333;
+            --warna-teks-terang: #ffffff;
+            --warna-card: #ffffff;
+            --warna-border: #ffd1dc;
+            --warna-success: #8ce99a;
+            --warna-warning: #ffd43b;
+            --warna-danger: #ff8787;
+            --bayangan: rgba(0, 0, 0, 0.1);
+            --bayangan-tebal: rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--warna-latar), #ffeef2);
+            min-height: 100vh;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px var(--bayangan);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(to right, var(--warna-utama), var(--warna-sekunder));
+            color: var(--warna-teks-terang);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-section {
+            display: flex;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .task-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid var(--warna-border);
+            border-radius: 12px;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .task-input:focus {
+            border-color: var(--warna-utama);
+            box-shadow: 0 0 0 3px rgba(255, 143, 171, 0.2);
+        }
+
+        .priority-select {
+            padding: 0 15px;
+            border: 2px solid var(--warna-border);
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            background: white;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            background: linear-gradient(to right, var(--warna-utama), var(--warna-sekunder));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--bayangan);
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--warna-border);
+            border-radius: 30px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .filter-btn.active {
+            background: var(--warna-utama);
+            color: white;
+            border-color: var(--warna-utama);
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .task-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .task-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .task-list::-webkit-scrollbar-thumb {
+            background: var(--warna-utama);
+            border-radius: 10px;
+        }
+
+        .task-item {
+            background: var(--warna-card);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 3px 10px var(--bayangan);
+            transition: all 0.3s;
+            border-left: 5px solid var(--warna-utama);
+        }
+
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--bayangan-tebal);
+        }
+
+        .task-item.priority-high {
+            border-left-color: var(--warna-danger);
+        }
+
+        .task-item.priority-medium {
+            border-left-color: var(--warna-warning);
+        }
+
+        .task-item.priority-low {
+            border-left-color: var(--warna-success);
+        }
+
+        .task-item.completed {
+            opacity: 0.7;
+            background: #f9f9f9;
+        }
+
+        .task-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--warna-border);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .task-checkbox.checked {
+            background: var(--warna-success);
+            border-color: var(--warna-success);
+        }
+
+        .task-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 1.1rem;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .task-priority {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .priority-high {
+            background: rgba(255, 135, 135, 0.2);
+            color: var(--warna-danger);
+        }
+
+        .priority-medium {
+            background: rgba(255, 212, 59, 0.2);
+            color: #e67700;
+        }
+
+        .priority-low {
+            background: rgba(140, 233, 154, 0.2);
+            color: #2b8a3e;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .task-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: #888;
+            transition: all 0.3s;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-action-btn:hover {
+            background: #f0f0f0;
+            color: var(--warna-sekunder);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--warna-border);
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .input-section {
+                flex-direction: column;
+            }
+            
+            .filters {
+                justify-content: center;
+            }
+            
+            .task-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .task-actions {
+                align-self: flex-end;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-tasks"></i> Todo List Premium</h1>
+            <p>Kelola tugas Anda dengan mudah dan efisien</p>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-tasks">0</div>
+                    <div class="stat-label">Total Tugas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="completed-tasks">0</div>
+                    <div class="stat-label">Selesai</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="pending-tasks">0</div>
+                    <div class="stat-label">Belum Selesai</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <input type="text" class="task-input" id="task-input" placeholder="Tambahkan tugas baru...">
+                <select class="priority-select" id="priority-select">
+                    <option value="low">Prioritas Rendah</option>
+                    <option value="medium">Prioritas Medium</option>
+                    <option value="high">Prioritas Tinggi</option>
+                </select>
+                <button class="add-btn" id="add-btn">
+                    <i class="fas fa-plus"></i> Tambah
+                </button>
+            </div>
+            
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">Semua Tugas</button>
+                <button class="filter-btn" data-filter="active">Aktif</button>
+                <button class="filter-btn" data-filter="completed">Selesai</button>
+                <button class="filter-btn" data-filter="high">Prioritas Tinggi</button>
+            </div>
+            
+            <div class="task-list" id="task-list">
+                <!-- Task items will be added here dynamically -->
+                <div class="empty-state" id="empty-state">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h3>Tidak ada tugas</h3>
+                    <p>Tambahkan tugas pertama Anda untuk memulai</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TodoList {
+            constructor() {
+                this.tasks = JSON.parse(localStorage.getItem('todoTasks')) || [];
+                this.currentFilter = 'all';
+                
+                this.initializeElements();
+                this.attachEventListeners();
+                this.renderTasks();
+                this.updateStats();
+            }
+            
+            initializeElements() {
+                this.taskInput = document.getElementById('task-input');
+                this.prioritySelect = document.getElementById('priority-select');
+                this.addBtn = document.getElementById('add-btn');
+                this.taskList = document.getElementById('task-list');
+                this.emptyState = document.getElementById('empty-state');
+                this.filterBtns = document.querySelectorAll('.filter-btn');
+                
+                // Stats elements
+                this.totalTasksEl = document.getElementById('total-tasks');
+                this.completedTasksEl = document.getElementById('completed-tasks');
+                this.pendingTasksEl = document.getElementById('pending-tasks');
+            }
+            
+            attachEventListeners() {
+                this.addBtn.addEventListener('click', () => this.addTask());
+                this.taskInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addTask();
+                });
+                
+                this.filterBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.filterBtns.forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentFilter = e.target.dataset.filter;
+                        this.renderTasks();
+                    });
+                });
+            }
+            
+            addTask() {
+                const text = this.taskInput.value.trim();
+                if (text === '') return;
+                
+                const task = {
+                    id: Date.now(),
+                    text: text,
+                    priority: this.prioritySelect.value,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
+                
+                this.tasks.unshift(task);
+                this.saveTasks();
+                this.taskInput.value = '';
+                this.renderTasks();
+                this.updateStats();
+            }
+            
+            toggleTask(id) {
+                this.tasks = this.tasks.map(task => {
+                    if (task.id === id) {
+                        return { ...task, completed: !task.completed };
+                    }
+                    return task;
+                });
+                
+                this.saveTasks();
+                this.renderTasks();
+                this.updateStats();
+            }
+            
+            deleteTask(id) {
+                this.tasks = this.tasks.filter(task => task.id !== id);
+                this.saveTasks();
+                this.renderTasks();
+                this.updateStats();
+            }
+            
+            saveTasks() {
+                localStorage.setItem('todoTasks', JSON.stringify(this.tasks));
+            }
+            
+            getFilteredTasks() {
+                switch (this.currentFilter) {
+                    case 'active':
+                        return this.tasks.filter(task => !task.completed);
+                    case 'completed':
+                        return this.tasks.filter(task => task.completed);
+                    case 'high':
+                        return this.tasks.filter(task => task.priority === 'high');
+                    default:
+                        return this.tasks;
+                }
+            }
+            
+            renderTasks() {
+                const filteredTasks = this.getFilteredTasks();
+                
+                if (filteredTasks.length === 0) {
+                    this.taskList.innerHTML = '';
+                    this.emptyState.style.display = 'block';
+                    this.taskList.appendChild(this.emptyState);
+                    return;
+                }
+                
+                this.emptyState.style.display = 'none';
+                
+                this.taskList.innerHTML = filteredTasks.map(task => `
+                    <div class="task-item ${task.completed ? 'completed' : ''} priority-${task.priority}">
+                        <div class="task-checkbox ${task.completed ? 'checked' : ''}" 
+                             onclick="todoList.toggleTask(${task.id})"></div>
+                        <div class="task-text">${task.text}</div>
+                        <div class="task-priority priority-${task.priority}">
+                            ${task.priority === 'high' ? 'Tinggi' : task.priority === 'medium' ? 'Medium' : 'Rendah'}
+                        </div>
+                        <div class="task-actions">
+                            <button class="task-action-btn" onclick="todoList.deleteTask(${task.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            updateStats() {
+                const total = this.tasks.length;
+                const completed = this.tasks.filter(task => task.completed).length;
+                const pending = total - completed;
+                
+                this.totalTasksEl.textContent = total;
+                this.completedTasksEl.textContent = completed;
+                this.pendingTasksEl.textContent = pending;
+            }
+        }
+        
+        // Initialize the todo list
+        const todoList = new TodoList();
+    </script>
+</body>
+</html>
